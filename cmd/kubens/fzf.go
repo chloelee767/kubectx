@@ -32,6 +32,7 @@ import (
 
 type InteractiveSwitchOp struct {
 	SelfCmd string
+	Queries []string
 }
 
 // TODO(ahmetb) This method is heavily repetitive vs kubectx/fzf.go.
@@ -47,7 +48,12 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 	}
 	defer kc.Close()
 
-	cmd := exec.Command("fzf", "--ansi", "--no-preview")
+	fzfArgs := []string{"--ansi", "--no-preview", "--query", strings.Join(op.Queries, " "), "--exact"}
+	if os.Getenv(env.EnvFZFSelectOne) != "" {
+		fzfArgs = append(fzfArgs, "--select-1")
+	}
+
+	cmd := exec.Command("fzf", fzfArgs...)
 	var out bytes.Buffer
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = stderr

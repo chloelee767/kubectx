@@ -32,6 +32,7 @@ import (
 
 type InteractiveSwitchOp struct {
 	SelfCmd string
+	Queries []string
 }
 
 type InteractiveDeleteOp struct {
@@ -50,7 +51,14 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 	}
 	kc.Close()
 
-	cmd := exec.Command("fzf", "--ansi", "--no-preview")
+	// TODO return exact match if it exists
+
+	fzfArgs := []string{"--ansi", "--no-preview", "--query", strings.Join(op.Queries, " ")}
+	if os.Getenv(env.EnvFZFSelectOne) != "" {
+		fzfArgs = append(fzfArgs, "--select-1")
+	}
+
+	cmd := exec.Command("fzf", fzfArgs...)
 	var out bytes.Buffer
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = stderr
