@@ -16,12 +16,14 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/ahmetb/kubectx/internal/cmdutil"
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_parseArgs_new(t *testing.T) {
+func Test_parseArgs_nonInteractive(t *testing.T) {
 	tests := []struct {
 		name string
 		args []string
@@ -81,7 +83,8 @@ func Test_parseArgs_new(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parseArgs(tt.args)
+			parser := &argParser{isInteractiveMode: func(*os.File) bool { return false }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+			got := parser.ParseArgs(tt.args)
 
 			var opts cmp.Options
 			if _, ok := tt.want.(UnsupportedOp); ok {

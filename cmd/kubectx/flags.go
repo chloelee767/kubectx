@@ -30,11 +30,20 @@ func (op UnsupportedOp) Run(_, _ io.Writer) error {
 	return op.Err
 }
 
-// parseArgs looks at flags (excl. executable name, i.e. argv[0])
+type argParser struct {
+	isInteractiveMode    func(*os.File) bool
+	isFZFUseQueryEnabled func() bool
+}
+
+func newArgParser() *argParser {
+	return &argParser{isInteractiveMode: cmdutil.IsInteractiveMode, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+}
+
+// ParseArgs looks at flags (excl. executable name, i.e. argv[0])
 // and decides which operation should be taken.
-func parseArgs(argv []string) Op {
+func (p argParser) ParseArgs(argv []string) Op {
 	if len(argv) == 0 {
-		if cmdutil.IsInteractiveMode(os.Stdout) {
+		if p.isInteractiveMode(os.Stdout) {
 			return InteractiveSwitchOp{SelfCmd: os.Args[0]}
 		}
 		return ListOp{}
@@ -42,7 +51,7 @@ func parseArgs(argv []string) Op {
 
 	if argv[0] == "-d" {
 		if len(argv) == 1 {
-			if cmdutil.IsInteractiveMode(os.Stdout) {
+			if p.isInteractiveMode(os.Stdout) {
 				return InteractiveDeleteOp{SelfCmd: os.Args[0]}
 			} else {
 				return UnsupportedOp{Err: fmt.Errorf("'-d' needs arguments")}
@@ -74,14 +83,14 @@ func parseArgs(argv []string) Op {
 			return UnsupportedOp{Err: fmt.Errorf("unsupported option '%s'", v)}
 		}
 
-		if v != "-" && cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnabled() {
+		if v != "-" && p.isInteractiveMode(os.Stdout) && p.isFZFUseQueryEnabled() {
 			return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 		}
 
 		return SwitchOp{Target: v}
 	}
 
-	if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnabled() {
+	if p.isInteractiveMode(os.Stdout) && p.isFZFUseQueryEnabled() {
 		return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 	}
 	return UnsupportedOp{Err: fmt.Errorf("too many arguments")}
