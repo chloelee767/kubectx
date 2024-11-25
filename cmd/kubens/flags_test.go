@@ -177,9 +177,10 @@ func Test_parseArgs_interactive_useQueryEnabled(t *testing.T) {
 }
 
 func cmpOpts() cmp.Options {
-	optUnsupportedOp := cmp.Comparer(func(x, y UnsupportedOp) bool {
-		return (x.Err == nil && y.Err == nil) || (x.Err.Error() == y.Err.Error())
-	})
-	optIgnoreSelfCmd := cmpopts.IgnoreFields(InteractiveSwitchOp{}, "SelfCmd")
-	return cmp.Options{optUnsupportedOp, optIgnoreSelfCmd}
+	return cmp.Options{
+		cmp.Comparer(func(x, y UnsupportedOp) bool {
+			return (x.Err == nil && y.Err == nil) || (x.Err.Error() == y.Err.Error())
+		}),
+		cmpopts.IgnoreFields(InteractiveSwitchOp{}, "SelfCmd"),
+	}
 }
