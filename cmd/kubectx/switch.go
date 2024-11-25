@@ -39,7 +39,7 @@ func (op SwitchOp) Run(_, stderr io.Writer) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to switch context")
 	}
-	err = printer.Success(stderr, "Switched to context \"%s\".", printer.SuccessColor.Sprint(newCtx))
+	err = printSwitchedToContext(stderr, newCtx)
 	return errors.Wrap(err, "print error")
 }
 
@@ -89,4 +89,8 @@ func swapContext() (string, error) {
 		return "", errors.New("no previous context found")
 	}
 	return switchContext(prev)
+}
+
+func printSwitchedToContext(stderr io.Writer, ctxName string) error {
+	return printer.Success(stderr, "Switched to context \"%s\".", printer.SuccessColor.Sprint(ctxName))
 }

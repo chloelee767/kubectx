@@ -55,12 +55,11 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 			return errors.Wrap(err, "failed to check if namespace exists")
 		}
 		if nsExists {
-			// TODO extract switch and print into method
 			name, err := switchNamespace(kc, query, false)
 			if err != nil {
 				return errors.Wrap(err, "failed to switch namespace")
 			}
-			printer.Success(stderr, "Active namespace is \"%s\".", printer.SuccessColor.Sprint(name))
+			printSwitchedToNamespace(stderr, name)
 			return nil
 		}
 	}
@@ -92,6 +91,6 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to switch namespace")
 	}
-	printer.Success(stderr, "Active namespace is \"%s\".", printer.SuccessColor.Sprint(name))
+	printSwitchedToNamespace(stderr, name)
 	return nil
 }

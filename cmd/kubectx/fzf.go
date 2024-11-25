@@ -55,12 +55,11 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 
 	// return exact match if it exists
 	if query != "" && slices.Contains(kc.ContextNames(), query) {
-		// TODO extract switch and print into method
 		name, err := switchContext(query)
 		if err != nil {
 			return errors.Wrap(err, "failed to switch context")
 		}
-		printer.Success(stderr, "Switched to context \"%s\".", printer.SuccessColor.Sprint(name))
+		printSwitchedToContext(stderr, name)
 		return nil
 	}
 
@@ -91,7 +90,7 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to switch context")
 	}
-	printer.Success(stderr, "Switched to context \"%s\".", printer.SuccessColor.Sprint(name))
+	printSwitchedToContext(stderr, name)
 	return nil
 }
 
