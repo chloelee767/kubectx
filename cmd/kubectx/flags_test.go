@@ -20,21 +20,21 @@ import (
 	"testing"
 
 	"github.com/ahmetb/kubectx/internal/cmdutil"
+	"github.com/ahmetb/kubectx/internal/env"
+	"github.com/ahmetb/kubectx/internal/testutil"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func Test_parseArgs_nonInteractive(t *testing.T) {
-	tests := []struct {
-		name string
-		args []string
-		want Op
-	}{
-		{name: "nil Args",
-			args: nil,
-			want: ListOp{}},
-		{name: "empty Args",
-			args: []string{},
-			want: ListOp{}},
+type parseArgsTest struct {
+	name string
+	args []string
+	want Op
+}
+
+// Test cases which are the same for all modes
+func parseArgCommonTests() []parseArgsTest {
+	return []parseArgsTest{
 		{name: "help shorthand",
 			args: []string{"-h"},
 			want: HelpOp{}},
@@ -53,15 +53,6 @@ func Test_parseArgs_nonInteractive(t *testing.T) {
 		{name: "unset long form",
 			args: []string{"--unset"},
 			want: UnsetOp{}},
-		{name: "switch by name",
-			args: []string{"foo"},
-			want: SwitchOp{Target: "foo"}},
-		{name: "switch by swap",
-			args: []string{"-"},
-			want: SwitchOp{Target: "-"}},
-		{name: "delete - without contexts",
-			args: []string{"-d"},
-			want: UnsupportedOp{fmt.Errorf("'-d' needs arguments")}},
 		{name: "delete - current context",
 			args: []string{"-d", "."},
 			want: DeleteOp{[]string{"."}}},
@@ -77,25 +68,119 @@ func Test_parseArgs_nonInteractive(t *testing.T) {
 		{name: "unrecognized flag",
 			args: []string{"-x"},
 			want: UnsupportedOp{Err: fmt.Errorf("unsupported option '-x'")}},
+	}
+}
+
+func Test_parseArgs_nonInteractive(t *testing.T) {
+	tests := []parseArgsTest{
+		{name: "nil Args",
+			args: nil,
+			want: ListOp{}},
+		{name: "empty Args",
+			args: []string{},
+			want: ListOp{}},
+		{name: "switch by name",
+			args: []string{"foo"},
+			want: SwitchOp{Target: "foo"}},
+		{name: "switch by swap",
+			args: []string{"-"},
+			want: SwitchOp{Target: "-"}},
+		{name: "delete - without contexts",
+			args: []string{"-d"},
+			want: UnsupportedOp{fmt.Errorf("'-d' needs arguments")}},
 		{name: "too many args",
 			args: []string{"a", "b", "c"},
 			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
 	}
+	tests = append(tests, parseArgCommonTests()...)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := &argParser{isInteractiveMode: func(*os.File) bool { return false }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
 			got := parser.ParseArgs(tt.args)
 
-			var opts cmp.Options
-			if _, ok := tt.want.(UnsupportedOp); ok {
-				opts = append(opts, cmp.Comparer(func(x, y UnsupportedOp) bool {
-					return (x.Err == nil && y.Err == nil) || (x.Err.Error() == y.Err.Error())
-				}))
-			}
-
-			if diff := cmp.Diff(got, tt.want, opts...); diff != "" {
+			if diff := cmp.Diff(got, tt.want, cmpOpts()...); diff != "" {
 				t.Errorf("parseArgs(%#v) diff: %s", tt.args, diff)
 			}
 		})
+	}
+}
+
+func Test_parseArgs_interactive_fzfUseQueryDisabled(t *testing.T) {
+	t.Cleanup(testutil.WithEnvVar(env.EnvFZFUseQuery, ""))
+	tests := []parseArgsTest{
+		{name: "nil Args",
+			args: nil,
+			want: InteractiveSwitchOp{}},
+		{name: "empty Args",
+			args: []string{},
+			want: InteractiveSwitchOp{}},
+		{name: "switch by name",
+			args: []string{"foo"},
+			want: SwitchOp{Target: "foo"}},
+		{name: "switch by swap",
+			args: []string{"-"},
+			want: SwitchOp{Target: "-"}},
+		{name: "delete - without contexts",
+			args: []string{"-d"},
+			want: InteractiveDeleteOp{}},
+		{name: "too many args",
+			args: []string{"a", "b", "c"},
+			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
+	}
+	tests = append(tests, parseArgCommonTests()...)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parser := &argParser{isInteractiveMode: func(*os.File) bool { return true }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+			got := parser.ParseArgs(tt.args)
+
+			if diff := cmp.Diff(got, tt.want, cmpOpts()...); diff != "" {
+				t.Errorf("parseArgs(%#v) diff: %s", tt.args, diff)
+			}
+		})
+	}
+}
+
+func Test_parseArgs_interactive_fzfUseQueryEnabled(t *testing.T) {
+	t.Cleanup(testutil.WithEnvVar(env.EnvFZFUseQuery, "1"))
+	tests := []parseArgsTest{
+		{name: "nil Args",
+			args: nil,
+			want: InteractiveSwitchOp{}},
+		{name: "empty Args",
+			args: []string{},
+			want: InteractiveSwitchOp{}},
+		{name: "switch by name",
+			args: []string{"foo"},
+			want: InteractiveSwitchOp{Queries: []string{"foo"}}},
+		{name: "switch by swap",
+			args: []string{"-"},
+			want: SwitchOp{Target: "-"}},
+		{name: "delete - without contexts",
+			args: []string{"-d"},
+			want: InteractiveDeleteOp{}},
+		{name: "too many args",
+			args: []string{"a", "b", "c"},
+			want: InteractiveSwitchOp{Queries: []string{"a", "b", "c"}}},
+	}
+	tests = append(tests, parseArgCommonTests()...)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parser := &argParser{isInteractiveMode: func(*os.File) bool { return true }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+			got := parser.ParseArgs(tt.args)
+
+			if diff := cmp.Diff(got, tt.want, cmpOpts()...); diff != "" {
+				t.Errorf("parseArgs(%#v) diff: %s", tt.args, diff)
+			}
+		})
+	}
+}
+
+func cmpOpts() cmp.Options {
+	return cmp.Options{
+		cmp.Comparer(func(x, y UnsupportedOp) bool {
+			return (x.Err == nil && y.Err == nil) || (x.Err.Error() == y.Err.Error())
+		}),
+		cmpopts.IgnoreFields(InteractiveSwitchOp{}, "SelfCmd"),
+		cmpopts.IgnoreFields(InteractiveDeleteOp{}, "SelfCmd"),
 	}
 }
