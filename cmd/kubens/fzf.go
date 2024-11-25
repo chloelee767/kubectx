@@ -64,12 +64,7 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 		}
 	}
 
-	fzfArgs := []string{"--ansi", "--no-preview", "--query", query}
-	if os.Getenv(env.EnvFZFSelectOne) != "" {
-		fzfArgs = append(fzfArgs, "--select-1")
-	}
-
-	cmd := exec.Command("fzf", fzfArgs...)
+	cmd := exec.Command("fzf", "--ansi", "--no-preview", "--query", query)
 	var out bytes.Buffer
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = stderr
