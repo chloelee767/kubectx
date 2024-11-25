@@ -31,13 +31,22 @@ func (op UnsupportedOp) Run(_, _ io.Writer) error {
 	return op.Err
 }
 
-// parseArgs looks at flags (excl. executable name, i.e. argv[0])
+type argParser struct {
+	isInteractiveMode    func(*os.File) bool
+	isFZFUseQueryEnabled func() bool
+}
+
+func newArgParser() *argParser {
+	return &argParser{isInteractiveMode: cmdutil.IsInteractiveMode, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+}
+
+// ParseArgs looks at flags (excl. executable name, i.e. argv[0])
 // and decides which operation should be taken.
-func parseArgs(argv []string) Op {
+func (p argParser) ParseArgs(argv []string) Op {
 	n := len(argv)
 
 	if n == 0 {
-		if cmdutil.IsInteractiveMode(os.Stdout) {
+		if p.isInteractiveMode(os.Stdout) {
 			return InteractiveSwitchOp{SelfCmd: os.Args[0]}
 		}
 		return ListOp{}
@@ -53,7 +62,7 @@ func parseArgs(argv []string) Op {
 		case "--current", "-c":
 			return CurrentOp{}
 		default:
-			return getSwitchOp(v, false)
+			return p.getSwitchOp(v, false)
 		}
 	} else if n == 2 {
 		// TODO double check this works with KUBECTX_FZF_USE_QUERY
@@ -69,24 +78,24 @@ func parseArgs(argv []string) Op {
 		}
 
 		if force {
-			return getSwitchOp(name, true)
+			return p.getSwitchOp(name, true)
 		}
 
 		// no -f or --force flag, fallback to the next logic
 	}
 
-	if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
+	if p.isInteractiveMode(os.Stdout) && p.isFZFUseQueryEnabled() {
 		return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 	}
 
 	return UnsupportedOp{Err: fmt.Errorf("too many arguments")}
 }
 
-func getSwitchOp(v string, force bool) Op {
+func (p argParser) getSwitchOp(v string, force bool) Op {
 	if strings.HasPrefix(v, "-") && v != "-" {
 		return UnsupportedOp{Err: fmt.Errorf("unsupported option %q", v)}
 	}
-	if v != "-" && cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
+	if !force && v != "-" && p.isInteractiveMode(os.Stdout) && p.isFZFUseQueryEnabled() {
 		return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: []string{v}}
 	}
 	return SwitchOp{Target: v, Force: force}
