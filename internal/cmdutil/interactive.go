@@ -43,7 +43,7 @@ func IsInteractiveMode(stdout *os.File) bool {
 	return v == "" && isTerminal(stdout) && fzfInstalled()
 }
 
-func IsFZFUseQueryEnbaled() bool {
+func IsFZFUseQueryEnabled() bool {
 	v := os.Getenv(env.EnvFZFUseQuery)
 	return v != ""
 }
