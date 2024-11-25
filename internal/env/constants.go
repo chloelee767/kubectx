@@ -23,13 +23,6 @@ const (
 	// args from kubectx/kubens to fzf as query.
 	EnvFZFUseQuery = "KUBECTX_FZF_USE_QUERY"
 
-	// EnvFZFSelectOne describes the environment variable to set if we want fzf
-	// to select the automatically select the match if the initial query only
-	// has 1 match.
-	// (ie. --select-1 flag)
-	// Recommended to set this together with KUBECTX_USE_QUERY.
-	EnvFZFSelectOne = "KUBECTX_FZF_SELECT_1"
-
 	// EnvForceColor describes the environment variable to disable color usage
 	// when printing current context in a list.
 	EnvNoColor = `NO_COLOR`
