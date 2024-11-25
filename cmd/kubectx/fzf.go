@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -40,7 +41,6 @@ type InteractiveDeleteOp struct {
 }
 
 func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
-	// parse kubeconfig just to see if it can be loaded
 	kc := new(kubeconfig.Kubeconfig).WithLoader(kubeconfig.DefaultLoader)
 	if err := kc.Parse(); err != nil {
 		if cmdutil.IsNotFoundErr(err) {
@@ -51,9 +51,20 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 	}
 	kc.Close()
 
-	// TODO return exact match if it exists
+	query := strings.Join(op.Queries, " ")
 
-	fzfArgs := []string{"--ansi", "--no-preview", "--query", strings.Join(op.Queries, " ")}
+	// return exact match if it exists
+	if query != "" && slices.Contains(kc.ContextNames(), query) {
+		// TODO extract switch and print into method
+		name, err := switchContext(query)
+		if err != nil {
+			return errors.Wrap(err, "failed to switch context")
+		}
+		printer.Success(stderr, "Switched to context \"%s\".", printer.SuccessColor.Sprint(name))
+		return nil
+	}
+
+	fzfArgs := []string{"--ansi", "--no-preview", "--query", query}
 	if os.Getenv(env.EnvFZFSelectOne) != "" {
 		fzfArgs = append(fzfArgs, "--select-1")
 	}

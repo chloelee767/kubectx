@@ -37,7 +37,6 @@ type InteractiveSwitchOp struct {
 
 // TODO(ahmetb) This method is heavily repetitive vs kubectx/fzf.go.
 func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
-	// parse kubeconfig just to see if it can be loaded
 	kc := new(kubeconfig.Kubeconfig).WithLoader(kubeconfig.DefaultLoader)
 	if err := kc.Parse(); err != nil {
 		if cmdutil.IsNotFoundErr(err) {
@@ -48,7 +47,25 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 	}
 	defer kc.Close()
 
-	fzfArgs := []string{"--ansi", "--no-preview", "--query", strings.Join(op.Queries, " "), "--exact"}
+	// return exact match if it exists
+	query := strings.Join(op.Queries, " ")
+	if query != "" {
+		nsExists, err := namespaceExists(kc, query)
+		if err != nil {
+			return errors.Wrap(err, "failed to check if namespace exists")
+		}
+		if nsExists {
+			// TODO extract switch and print into method
+			name, err := switchNamespace(kc, query, false)
+			if err != nil {
+				return errors.Wrap(err, "failed to switch namespace")
+			}
+			printer.Success(stderr, "Active namespace is \"%s\".", printer.SuccessColor.Sprint(name))
+			return nil
+		}
+	}
+
+	fzfArgs := []string{"--ansi", "--no-preview", "--query", query}
 	if os.Getenv(env.EnvFZFSelectOne) != "" {
 		fzfArgs = append(fzfArgs, "--select-1")
 	}
