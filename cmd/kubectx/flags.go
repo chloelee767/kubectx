@@ -74,11 +74,11 @@ func parseArgs(argv []string) Op {
 			return UnsupportedOp{Err: fmt.Errorf("unsupported option '%s'", v)}
 		}
 
-		if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
+		if v != "-" && cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
 			return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 		}
 
-		return SwitchOp{Target: argv[0]}
+		return SwitchOp{Target: v}
 	}
 
 	if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {

@@ -84,7 +84,7 @@ func getSwitchOp(v string, force bool) Op {
 	if strings.HasPrefix(v, "-") && v != "-" {
 		return UnsupportedOp{Err: fmt.Errorf("unsupported option %q", v)}
 	}
-	if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
+	if v != "-" && cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
 		return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: []string{v}}
 	}
 	return SwitchOp{Target: v, Force: force}
