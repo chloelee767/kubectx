@@ -56,21 +56,23 @@ func parseArgs(argv []string) Op {
 			return getSwitchOp(v, false)
 		}
 	} else if n == 2 {
+		// TODO double check this works with KUBECTX_FZF_USE_QUERY
+
 		// {namespace} -f|--force
 		name := argv[0]
 		force := slices.Contains([]string{"-f", "--force"}, argv[1])
 
-		if !force {
-			if !slices.Contains([]string{"-f", "--force"}, argv[0]) {
-				return UnsupportedOp{Err: fmt.Errorf("unsupported arguments %q", argv)}
-			}
-
+		if !force && slices.Contains([]string{"-f", "--force"}, argv[0]) {
 			// -f|--force {namespace}
 			force = true
 			name = argv[1]
 		}
 
-		return getSwitchOp(name, force)
+		if force {
+			return getSwitchOp(name, true)
+		}
+
+		// no -f or --force flag, fallback to the next logic
 	}
 
 	if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
