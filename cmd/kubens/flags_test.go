@@ -68,62 +68,28 @@ func parseArgCommonTests() []parseArgsTest {
 	}
 }
 
-// TODO refactor and use common tests
 func Test_parseArgs_nonInteractive(t *testing.T) {
-	tests := []struct {
-		name string
-		args []string
-		want Op
-	}{
+	tests := []parseArgsTest{
 		{name: "nil Args",
 			args: nil,
 			want: ListOp{}},
 		{name: "empty Args",
 			args: []string{},
 			want: ListOp{}},
-		{name: "help shorthand",
-			args: []string{"-h"},
-			want: HelpOp{}},
-		{name: "help long form",
-			args: []string{"--help"},
-			want: HelpOp{}},
-		{name: "current shorthand",
-			args: []string{"-c"},
-			want: CurrentOp{}},
-		{name: "current long form",
-			args: []string{"--current"},
-			want: CurrentOp{}},
 		{name: "switch by name",
 			args: []string{"foo"},
 			want: SwitchOp{Target: "foo"}},
-		{name: "switch by name force short flag",
-			args: []string{"foo", "-f"},
-			want: SwitchOp{Target: "foo", Force: true}},
-		{name: "switch by name force long flag",
-			args: []string{"foo", "--force"},
-			want: SwitchOp{Target: "foo", Force: true}},
-		{name: "switch by name force short flag before name",
-			args: []string{"-f", "foo"},
-			want: SwitchOp{Target: "foo", Force: true}},
-		{name: "switch by name force long flag before name",
-			args: []string{"--force", "foo"},
-			want: SwitchOp{Target: "foo", Force: true}},
 		{name: "switch by name unknown arguments",
 			args: []string{"foo", "-x"},
 			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
 		{name: "switch by name unknown arguments",
 			args: []string{"-x", "foo"},
 			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
-		{name: "switch by swap",
-			args: []string{"-"},
-			want: SwitchOp{Target: "-"}},
 		{name: "unrecognized flag",
 			args: []string{"-x"},
 			want: UnsupportedOp{Err: fmt.Errorf("unsupported option %q", "-x")}},
-		{name: "too many args",
-			args: []string{"a", "b", "c"},
-			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
 	}
+	tests = append(tests, parseArgCommonTests()...)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := &argParser{isInteractiveMode: func(*os.File) bool { return false }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
