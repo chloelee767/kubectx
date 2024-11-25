@@ -73,7 +73,16 @@ func parseArgs(argv []string) Op {
 		if strings.HasPrefix(v, "-") && v != "-" {
 			return UnsupportedOp{Err: fmt.Errorf("unsupported option '%s'", v)}
 		}
+
+		if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
+			return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
+		}
+
 		return SwitchOp{Target: argv[0]}
+	}
+
+	if cmdutil.IsInteractiveMode(os.Stdout) && cmdutil.IsFZFUseQueryEnbaled() {
+		return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 	}
 	return UnsupportedOp{Err: fmt.Errorf("too many arguments")}
 }
