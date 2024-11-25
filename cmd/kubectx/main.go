@@ -32,7 +32,8 @@ type Op interface {
 func main() {
 	cmdutil.PrintDeprecatedEnvWarnings(color.Error, os.Environ())
 
-	op := parseArgs(os.Args[1:])
+	parser := newArgParser()
+	op := parser.ParseArgs(os.Args[1:])
 	if err := op.Run(color.Output, color.Error); err != nil {
 		printer.Error(color.Error, err.Error())
 
