@@ -43,7 +43,7 @@ func (s SwitchOp) Run(_, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = printer.Success(stderr, "Active namespace is \"%s\"", printer.SuccessColor.Sprint(toNS))
+	err = printSwitchedToNamespace(stderr, toNS)
 	return err
 }
 
@@ -111,4 +111,8 @@ func namespaceExists(kc *kubeconfig.Kubeconfig, ns string) (bool, error) {
 	}
 	return namespace != nil, errors.Wrapf(err, "failed to query "+
 		"namespace %q from k8s API", ns)
+}
+
+func printSwitchedToNamespace(stderr io.Writer, nsName string) error {
+	return printer.Success(stderr, "Active namespace is \"%s\"", printer.SuccessColor.Sprint(nsName))
 }
