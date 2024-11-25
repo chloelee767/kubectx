@@ -60,14 +60,12 @@ func Test_parseArgs_new(t *testing.T) {
 		{name: "switch by name force long flag before name",
 			args: []string{"--force", "foo"},
 			want: SwitchOp{Target: "foo", Force: true}},
-		// TODO fix test
 		{name: "switch by name unknown arguments",
 			args: []string{"foo", "-x"},
-			want: UnsupportedOp{Err: fmt.Errorf("unsupported arguments %q", []string{"foo", "-x"})}},
-		// TODO fix test
+			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
 		{name: "switch by name unknown arguments",
 			args: []string{"-x", "foo"},
-			want: UnsupportedOp{Err: fmt.Errorf("unsupported arguments %q", []string{"-x", "foo"})}},
+			want: UnsupportedOp{Err: fmt.Errorf("too many arguments")}},
 		{name: "switch by swap",
 			args: []string{"-"},
 			want: SwitchOp{Target: "-"}},
