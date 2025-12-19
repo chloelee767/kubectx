@@ -281,6 +281,11 @@ If you want to keep `fzf` interactive mode but need the default behavior of the
 command, you can do it by piping the output to another command (e.g. `kubectx |
 cat `).
 
+When using `kubectx <NAME>` or `kubens <NAME>`, if you want to avoid erroring
+when an exact context/namespace match is not found and instead open fzf (with
+`<NAME>` prefilled as the initial query), you can set the environment variable
+`KUBECTX_FZF_FALLBACK=1`.
+
 -----
 
 ### Customizing colors
