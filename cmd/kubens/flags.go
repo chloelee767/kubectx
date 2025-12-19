@@ -65,8 +65,6 @@ func (p argParser) ParseArgs(argv []string) Op {
 			return p.getSwitchOp(v, false)
 		}
 	} else if n == 2 {
-		// TODO double check this works with KUBECTX_FZF_FALLBACK
-
 		// {namespace} -f|--force
 		name := argv[0]
 		force := slices.Contains([]string{"-f", "--force"}, argv[1])
