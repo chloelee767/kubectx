@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "language-server-go": {
+      "command": "mcp-language-server",
+      "args": ["--workspace", "/Users/chloelee/go/src/github.com/chloelee767/kubectx/", "--lsp", "gopls"]
+    }
+  }
+}
