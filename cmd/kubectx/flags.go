@@ -32,11 +32,11 @@ func (op UnsupportedOp) Run(_, _ io.Writer) error {
 
 type argParser struct {
 	isInteractiveMode    func(*os.File) bool
-	isFZFUseQueryEnabled func() bool
+	isFZFFallbackEnabled func() bool
 }
 
 func newArgParser() *argParser {
-	return &argParser{isInteractiveMode: cmdutil.IsInteractiveMode, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+	return &argParser{isInteractiveMode: cmdutil.IsInteractiveMode, isFZFFallbackEnabled: cmdutil.IsFZFFallbackEnabled}
 }
 
 // ParseArgs looks at flags (excl. executable name, i.e. argv[0])
@@ -83,14 +83,14 @@ func (p argParser) ParseArgs(argv []string) Op {
 			return UnsupportedOp{Err: fmt.Errorf("unsupported option '%s'", v)}
 		}
 
-		if v != "-" && p.isInteractiveMode(os.Stdout) && p.isFZFUseQueryEnabled() {
+		if v != "-" && p.isInteractiveMode(os.Stdout) && p.isFZFFallbackEnabled() {
 			return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 		}
 
 		return SwitchOp{Target: v}
 	}
 
-	if p.isInteractiveMode(os.Stdout) && p.isFZFUseQueryEnabled() {
+	if p.isInteractiveMode(os.Stdout) && p.isFZFFallbackEnabled() {
 		return InteractiveSwitchOp{SelfCmd: os.Args[0], Queries: argv}
 	}
 	return UnsupportedOp{Err: fmt.Errorf("too many arguments")}

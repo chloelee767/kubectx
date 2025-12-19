@@ -19,16 +19,9 @@ const (
 	// interactive context selection when fzf is installed.
 	EnvFZFIgnore = "KUBECTX_IGNORE_FZF"
 
-	// EnvFZFUseQuery describes the environment variable to set to pass any
-	// args from kubectx/kubens to fzf as query.
-	EnvFZFUseQuery = "KUBECTX_FZF_USE_QUERY"
-
-	// EnvFZFSelectOne describes the environment variable to set if we want fzf
-	// to select the automatically select the match if the initial query only
-	// has 1 match.
-	// (ie. --select-1 flag)
-	// Recommended to set this together with KUBECTX_USE_QUERY.
-	EnvFZFSelectOne = "KUBECTX_FZF_SELECT_1"
+	// EnvFZFFallback describes the environment variable to enable fallback to fzf
+	// searching when an exact context/namespace match is not found.
+	EnvFZFFallback = "KUBECTX_FZF_FALLBACK"
 
 	// EnvNoColor describes the environment variable to disable color usage
 	// when printing current context in a list.

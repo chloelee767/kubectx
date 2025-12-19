@@ -95,7 +95,7 @@ func Test_parseArgs_nonInteractive(t *testing.T) {
 	tests = append(tests, parseArgCommonTests()...)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parser := &argParser{isInteractiveMode: func(*os.File) bool { return false }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+			parser := &argParser{isInteractiveMode: func(*os.File) bool { return false }, isFZFFallbackEnabled: cmdutil.IsFZFFallbackEnabled}
 			got := parser.ParseArgs(tt.args)
 
 			if diff := cmp.Diff(got, tt.want, cmpOpts()...); diff != "" {
@@ -105,8 +105,8 @@ func Test_parseArgs_nonInteractive(t *testing.T) {
 	}
 }
 
-func Test_parseArgs_interactive_fzfUseQueryDisabled(t *testing.T) {
-	t.Cleanup(testutil.WithEnvVar(env.EnvFZFUseQuery, ""))
+func Test_parseArgs_interactive_fzfFallbackDisabled(t *testing.T) {
+	t.Cleanup(testutil.WithEnvVar(env.EnvFZFFallback, ""))
 	tests := []parseArgsTest{
 		{name: "nil Args",
 			args: nil,
@@ -130,7 +130,7 @@ func Test_parseArgs_interactive_fzfUseQueryDisabled(t *testing.T) {
 	tests = append(tests, parseArgCommonTests()...)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parser := &argParser{isInteractiveMode: func(*os.File) bool { return true }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+			parser := &argParser{isInteractiveMode: func(*os.File) bool { return true }, isFZFFallbackEnabled: cmdutil.IsFZFFallbackEnabled}
 			got := parser.ParseArgs(tt.args)
 
 			if diff := cmp.Diff(got, tt.want, cmpOpts()...); diff != "" {
@@ -140,8 +140,8 @@ func Test_parseArgs_interactive_fzfUseQueryDisabled(t *testing.T) {
 	}
 }
 
-func Test_parseArgs_interactive_fzfUseQueryEnabled(t *testing.T) {
-	t.Cleanup(testutil.WithEnvVar(env.EnvFZFUseQuery, "1"))
+func Test_parseArgs_interactive_fzfFallbackEnabled(t *testing.T) {
+	t.Cleanup(testutil.WithEnvVar(env.EnvFZFFallback, "1"))
 	tests := []parseArgsTest{
 		{name: "nil Args",
 			args: nil,
@@ -165,7 +165,7 @@ func Test_parseArgs_interactive_fzfUseQueryEnabled(t *testing.T) {
 	tests = append(tests, parseArgCommonTests()...)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parser := &argParser{isInteractiveMode: func(*os.File) bool { return true }, isFZFUseQueryEnabled: cmdutil.IsFZFUseQueryEnabled}
+			parser := &argParser{isInteractiveMode: func(*os.File) bool { return true }, isFZFFallbackEnabled: cmdutil.IsFZFFallbackEnabled}
 			got := parser.ParseArgs(tt.args)
 
 			if diff := cmp.Diff(got, tt.want, cmpOpts()...); diff != "" {
