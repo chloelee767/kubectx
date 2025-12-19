@@ -158,7 +158,7 @@ func Test_parseArgs_interactive_fzfFallbackEnabled(t *testing.T) {
 		{name: "delete - without contexts",
 			args: []string{"-d"},
 			want: InteractiveDeleteOp{}},
-		{name: "too many args",
+		{name: "multiple args",
 			args: []string{"a", "b", "c"},
 			want: InteractiveSwitchOp{Queries: []string{"a", "b", "c"}}},
 	}
