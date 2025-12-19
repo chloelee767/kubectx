@@ -49,7 +49,7 @@ func (op InteractiveSwitchOp) Run(_, stderr io.Writer) error {
 		}
 		return errors.Wrap(err, "kubeconfig error")
 	}
-	kc.Close()
+	defer kc.Close()
 
 	query := strings.Join(op.Queries, " ")
 
